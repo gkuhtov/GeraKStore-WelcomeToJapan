@@ -13,15 +13,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Theos
+      - name: Setup Environment
         run: |
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
           echo "THEOS=/Users/runner/theos" >> $GITHUB_ENV
 
-      - name: Setup additional iOS SDKs
+      - name: Install Dependencies
+        run: |
+          brew install ldid
+
+      - name: Install Theos Directly
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $THEOS
+
+      - name: Install iOS SDKs
         run: |
           curl -fsSL https://github.com/theos/sdks/archive/master.zip -o sdks.zip
           unzip -q sdks.zip
+          mkdir -p $THEOS/sdks
           cp -r sdks-master/* $THEOS/sdks/ || true
           rm -rf sdks-master sdks.zip
 
