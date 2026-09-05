@@ -23,6 +23,5 @@
 @property (nonatomic, assign) BOOL hapticEnabled;
 
 + (instancetype)sharedConfig;
-- (void)reloadConfig;
 
 @end
