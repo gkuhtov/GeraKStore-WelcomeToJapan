@@ -18,9 +18,7 @@
     if (!base64Str || base64Str.length == 0) return nil;
     @try {
         NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Str options:NSDataBase64DecodingIgnoreUnknownCharacters];
-        if (data) {
-            return [UIImage imageWithData:data];
-        }
+        if (data) return [UIImage imageWithData:data];
     } @catch (NSException *e) {
         NSLog(@"[WelcomeToJapan] Base64 decode error: %@", e);
     }
@@ -98,7 +96,6 @@
     if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
-    // Левая табличка
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
     CGFloat leftY = (screenH * cfg.leftPlaqueOrigin.y) + 30;
     UIView *leftPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -107,7 +104,6 @@
                                                isRight:NO];
     [self.plaquesLayer addSubview:leftPlaque];
 
-    // Правая табличка
     CGFloat rightX = screenW - cfg.rightPlaqueOrigin.x - cfg.plaqueSize.width + 30;
     CGFloat rightY = (screenH * cfg.rightPlaqueOrigin.y) + 30;
     UIView *rightPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -124,55 +120,52 @@
     plaqueBg.contentMode = UIViewContentModeScaleToFill;
     plaqueBg.image = plaqueImage;
     plaqueBg.layer.shadowColor = [UIColor blackColor].CGColor;
-    plaqueBg.layer.shadowOpacity = 0.50;
-    plaqueBg.layer.shadowRadius = 8.0;
-    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 6);
+    plaqueBg.layer.shadowOpacity = 0.55;
+    plaqueBg.layer.shadowRadius = 10.0;
+    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 7);
     [container addSubview:plaqueBg];
 
-    // Внутренний отступ: буквы не вылезают за границы фаски
-    CGFloat topPadding = 24.0;
-    CGFloat bottomPadding = 22.0;
-    CGFloat innerW = frame.size.width - 10.0;
+    CGFloat topPadding = 28.0;
+    CGFloat bottomPadding = 26.0;
+    CGFloat innerW = frame.size.width - 12.0;
     CGFloat innerH = frame.size.height - topPadding - bottomPadding;
 
-    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(5.0, topPadding, innerW, innerH)];
+    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(6.0, topPadding, innerW, innerH)];
     lbl.text = text;
     lbl.textAlignment = NSTextAlignmentCenter;
     lbl.numberOfLines = 0;
-    lbl.font = [UIFont systemFontOfSize:15 weight:UIFontWeightHeavy];
-    lbl.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.95];
+    lbl.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
+    lbl.textColor = [UIColor colorWithRed:0.20 green:0.11 blue:0.06 alpha:0.98];
     
-    // Эффект гравировки
-    lbl.layer.shadowColor = [UIColor colorWithRed:0.98 green:0.93 blue:0.86 alpha:0.8].CGColor;
+    lbl.layer.shadowColor = [UIColor colorWithRed:0.98 green:0.93 blue:0.86 alpha:0.85].CGColor;
     lbl.layer.shadowOpacity = 1.0;
-    lbl.layer.shadowRadius = 0.5;
+    lbl.layer.shadowRadius = 0.6;
     lbl.layer.shadowOffset = CGSizeMake(0, 1.0);
     [container addSubview:lbl];
 
     return container;
 }
 
-// 1. Верхний информационный блок: Логотип + Заголовок (в створе между табличками)
 - (void)setupHeaderInfo {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
     CGFloat screenW = self.view.bounds.size.width;
     CGFloat screenH = self.view.bounds.size.height;
 
-    CGFloat headerW = screenW - 148;
-    CGFloat headerH = 220;
-    CGFloat startY = screenH * 0.40;
+    CGFloat headerW = screenW - 130;
+    CGFloat headerH = 240;
+    CGFloat startY = screenH * 0.39;
 
     self.headerInfoLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - headerW) / 2.0 + 30, startY + 30, headerW, headerH)];
     [self.sceneContainer addSubview:self.headerInfoLayer];
 
-    // Крупный металлический шильдик
+    // Металлический шильдик
     UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
     if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
 
-    CGFloat logoW = 216.0;
-    CGFloat logoH = 108.0;
-    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, 0, logoW, logoH)];
+    CGFloat logoW = 245.0;
+    CGFloat logoH = 122.0;
+    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -8, logoW, logoH)];
     self.metalLogoView.contentMode = UIViewContentModeScaleAspectFit;
     self.metalLogoView.image = cleanLogo;
     self.metalLogoView.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -181,25 +174,33 @@
     self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 8);
     [self.headerInfoLayer addSubview:self.metalLogoView];
 
-    // Текст "Добро пожаловать"
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 116, headerW, 28)];
+    // Заголовок "Добро пожаловать" (Serif)
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 122, headerW, 32)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
-    title.font = [UIFont boldSystemFontOfSize:22];
-    title.textColor = [UIColor colorWithRed:0.18 green:0.12 blue:0.08 alpha:1.0];
+    UIFont *serifFont = [UIFont fontWithName:@"Georgia-Bold" size:24];
+    if (!serifFont) serifFont = [UIFont boldSystemFontOfSize:23];
+    title.font = serifFont;
+    title.textColor = [UIColor colorWithRed:0.16 green:0.10 blue:0.06 alpha:1.0];
     [self.headerInfoLayer addSubview:title];
 
-    // Подзаголовок
-    UILabel *sub = [[UILabel alloc] initWithFrame:CGRectMake(0, 146, headerW, 32)];
-    sub.text = cfg.sublineText;
-    sub.textAlignment = NSTextAlignmentCenter;
-    sub.numberOfLines = 2;
-    sub.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
-    sub.textColor = [UIColor colorWithRed:0.35 green:0.27 blue:0.20 alpha:0.85];
-    [self.headerInfoLayer addSubview:sub];
+    // Подзаголовок: Строка 1 ("Подготовлено и распространяется через")
+    UILabel *subLine1 = [[UILabel alloc] initWithFrame:CGRectMake(0, 158, headerW, 20)];
+    subLine1.text = cfg.sublineText;
+    subLine1.textAlignment = NSTextAlignmentCenter;
+    subLine1.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
+    subLine1.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.90];
+    [self.headerInfoLayer addSubview:subLine1];
+
+    // Подзаголовок: Строка 2 ("GeraKStore" — смещена вправо для визуального баланса)
+    UILabel *subLine2 = [[UILabel alloc] initWithFrame:CGRectMake(24, 178, headerW, 22)];
+    subLine2.text = @"GeraKStore";
+    subLine2.textAlignment = NSTextAlignmentCenter;
+    subLine2.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    subLine2.textColor = [UIColor colorWithRed:0.15 green:0.09 blue:0.05 alpha:1.0];
+    [self.headerInfoLayer addSubview:subLine2];
 }
 
-// 2. Нижний блок действий: Кнопки строго внизу по макету
 - (void)setupBottomActions {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
     CGFloat screenW = self.view.bounds.size.width;
@@ -207,13 +208,12 @@
 
     CGFloat actionsW = screenW - 80;
     CGFloat actionsH = 160;
-    // Позиционируем в нижней части экрана
+    // Позиция кнопок сохранена ровно на твоих координатах
     CGFloat bottomY = screenH * 0.77;
 
     self.bottomActionsLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - actionsW) / 2.0 + 30, bottomY + 30, actionsW, actionsH)];
     [self.sceneContainer addSubview:self.bottomActionsLayer];
 
-    // Кнопки соцсетей (Telegram / GitHub)
     CGFloat btnSpacing = 12.0;
     CGFloat btnW = (actionsW - btnSpacing) / 2.0;
     UIButton *tgBtn = [self createThemeButton:@"Telegram" frame:CGRectMake(0, 0, btnW, 46)];
@@ -224,16 +224,14 @@
     [ghBtn addTarget:self action:@selector(openGithub) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomActionsLayer addSubview:ghBtn];
 
-    // Кнопка "Продолжить"
     UIButton *contBtn = [self createThemeButton:cfg.continueButtonText frame:CGRectMake(0, 56, actionsW, 48)];
     [contBtn addTarget:self action:@selector(dismissScreen) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomActionsLayer addSubview:contBtn];
 
-    // Кнопка "Больше не показывать"
     UIButton *neverBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     neverBtn.frame = CGRectMake(0, 114, actionsW, 26);
     [neverBtn setTitle:cfg.neverShowText forState:UIControlStateNormal];
-    [neverBtn setTitleColor:[UIColor colorWithRed:0.26 green:0.18 blue:0.12 alpha:0.90] forState:UIControlStateNormal];
+    [neverBtn setTitleColor:[UIColor colorWithRed:0.95 green:0.92 blue:0.85 alpha:0.85] forState:UIControlStateNormal];
     neverBtn.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
     [neverBtn addTarget:self action:@selector(neverShowAgain) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomActionsLayer addSubview:neverBtn];

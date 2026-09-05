@@ -15,7 +15,7 @@
     self = [super init];
     if (self) {
         _headlineText = @"Добро пожаловать";
-        _sublineText = @"Подготовлено и распространяется\nчерез GeraKStore";
+        _sublineText = @"Подготовлено и распространяется через"; // Первая строка
         _continueButtonText = @"Продолжить";
         _neverShowText = @"Больше не показывать";
         _telegramUrl = @"https://t.me/GeraKStore";
@@ -24,10 +24,10 @@
         _leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
         _rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
 
-        // Массивные дощечки, выровненные строго по одной линии Y (43% высоты экрана)
-        _plaqueSize = CGSizeMake(60, 260);
-        _leftPlaqueOrigin = CGPointMake(12, 0.43);
-        _rightPlaqueOrigin = CGPointMake(12, 0.43);
+        // Крупные, солидные дощечки
+        _plaqueSize = CGSizeMake(78, 315);
+        _leftPlaqueOrigin = CGPointMake(10, 0.40);
+        _rightPlaqueOrigin = CGPointMake(10, 0.40);
         _plaqueParallaxDepth = 16.0;
     }
     return self;
