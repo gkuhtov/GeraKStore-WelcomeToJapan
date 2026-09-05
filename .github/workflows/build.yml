@@ -29,9 +29,12 @@ jobs:
         run: |
           make clean
           make FINALPACKAGE=1
+          mkdir -p output
+          find .theos/obj -name "*.dylib" -exec cp {} output/ \;
+          find packages -name "*.deb" -exec cp {} output/ \; 2>/dev/null || true
 
-      - name: Upload Artifact (.dylib)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: WelcomeToJapan-Dylib
-          path: .theos/obj/debug/*.dylib
+          name: WelcomeToJapan-Build
+          path: output/*
