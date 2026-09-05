@@ -1,0 +1,9 @@
+Package: com.gerakstore.welcometojapan
+Name: WelcomeToJapan
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: 3D-Parallax Japanese Welcome Screen for IPAs
+Maintainer: GeraK
+Author: GeraK
+Section: Tweaks
