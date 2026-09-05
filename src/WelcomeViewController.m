@@ -7,7 +7,8 @@
 @property (nonatomic, strong) UIView *sceneContainer;
 @property (nonatomic, strong) UIImageView *backgroundImageView;
 @property (nonatomic, strong) UIView *plaquesLayer;
-@property (nonatomic, strong) UIView *interactiveLayer;
+@property (nonatomic, strong) UIView *headerInfoLayer;
+@property (nonatomic, strong) UIView *bottomActionsLayer;
 @property (nonatomic, strong) UIImageView *metalLogoView;
 @end
 
@@ -21,7 +22,7 @@
             return [UIImage imageWithData:data];
         }
     } @catch (NSException *e) {
-        NSLog(@"[WelcomeToJapan] Base64 decode failed: %@", e);
+        NSLog(@"[WelcomeToJapan] Base64 decode error: %@", e);
     }
     return nil;
 }
@@ -31,7 +32,6 @@
     CGImageRef rawRef = image.CGImage;
     if (!rawRef) return image;
     
-    // Безопасное маскирование черного цвета
     const CGFloat maskColors[6] = {0, 30, 0, 30, 0, 30};
     CGImageRef maskedRef = CGImageCreateWithMaskingColors(rawRef, maskColors);
     if (!maskedRef) return image;
@@ -69,7 +69,8 @@
 
     [self setupBackground];
     [self setupPlaques];
-    [self setupControlsAndLogo];
+    [self setupHeaderInfo];
+    [self setupBottomActions];
     [self applyMultiDepthParallax];
 }
 
@@ -97,6 +98,7 @@
     if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
+    // Левая табличка
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
     CGFloat leftY = (screenH * cfg.leftPlaqueOrigin.y) + 30;
     UIView *leftPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -105,6 +107,7 @@
                                                isRight:NO];
     [self.plaquesLayer addSubview:leftPlaque];
 
+    // Правая табличка
     CGFloat rightX = screenW - cfg.rightPlaqueOrigin.x - cfg.plaqueSize.width + 30;
     CGFloat rightY = (screenH * cfg.rightPlaqueOrigin.y) + 30;
     UIView *rightPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -121,11 +124,12 @@
     plaqueBg.contentMode = UIViewContentModeScaleToFill;
     plaqueBg.image = plaqueImage;
     plaqueBg.layer.shadowColor = [UIColor blackColor].CGColor;
-    plaqueBg.layer.shadowOpacity = 0.55;
-    plaqueBg.layer.shadowRadius = 9.0;
-    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 7);
+    plaqueBg.layer.shadowOpacity = 0.50;
+    plaqueBg.layer.shadowRadius = 8.0;
+    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 6);
     [container addSubview:plaqueBg];
 
+    // Внутренний отступ: буквы не вылезают за границы фаски
     CGFloat topPadding = 24.0;
     CGFloat bottomPadding = 22.0;
     CGFloat innerW = frame.size.width - 10.0;
@@ -138,6 +142,7 @@
     lbl.font = [UIFont systemFontOfSize:15 weight:UIFontWeightHeavy];
     lbl.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.95];
     
+    // Эффект гравировки
     lbl.layer.shadowColor = [UIColor colorWithRed:0.98 green:0.93 blue:0.86 alpha:0.8].CGColor;
     lbl.layer.shadowOpacity = 1.0;
     lbl.layer.shadowRadius = 0.5;
@@ -147,69 +152,91 @@
     return container;
 }
 
-- (void)setupControlsAndLogo {
+// 1. Верхний информационный блок: Логотип + Заголовок (в створе между табличками)
+- (void)setupHeaderInfo {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
     CGFloat screenW = self.view.bounds.size.width;
     CGFloat screenH = self.view.bounds.size.height;
 
-    CGFloat contentW = screenW - 140;
-    CGFloat contentH = 340;
-    CGFloat startY = screenH * 0.49;
+    CGFloat headerW = screenW - 148;
+    CGFloat headerH = 220;
+    CGFloat startY = screenH * 0.40;
 
-    self.interactiveLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - contentW) / 2.0 + 30, startY + 30, contentW, contentH)];
-    [self.sceneContainer addSubview:self.interactiveLayer];
+    self.headerInfoLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - headerW) / 2.0 + 30, startY + 30, headerW, headerH)];
+    [self.sceneContainer addSubview:self.headerInfoLayer];
 
+    // Крупный металлический шильдик
     UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
     if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
 
-    CGFloat logoW = 224.0;
-    CGFloat logoH = 112.0;
-    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((contentW - logoW) / 2.0, -74, logoW, logoH)];
+    CGFloat logoW = 216.0;
+    CGFloat logoH = 108.0;
+    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, 0, logoW, logoH)];
     self.metalLogoView.contentMode = UIViewContentModeScaleAspectFit;
     self.metalLogoView.image = cleanLogo;
     self.metalLogoView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.metalLogoView.layer.shadowOpacity = 0.65;
     self.metalLogoView.layer.shadowRadius = 14.0;
     self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 8);
-    [self.interactiveLayer addSubview:self.metalLogoView];
+    [self.headerInfoLayer addSubview:self.metalLogoView];
 
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 44, contentW, 28)];
+    // Текст "Добро пожаловать"
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 116, headerW, 28)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
     title.font = [UIFont boldSystemFontOfSize:22];
     title.textColor = [UIColor colorWithRed:0.18 green:0.12 blue:0.08 alpha:1.0];
-    [self.interactiveLayer addSubview:title];
+    [self.headerInfoLayer addSubview:title];
 
-    UILabel *sub = [[UILabel alloc] initWithFrame:CGRectMake(0, 74, contentW, 30)];
+    // Подзаголовок
+    UILabel *sub = [[UILabel alloc] initWithFrame:CGRectMake(0, 146, headerW, 32)];
     sub.text = cfg.sublineText;
     sub.textAlignment = NSTextAlignmentCenter;
     sub.numberOfLines = 2;
     sub.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
     sub.textColor = [UIColor colorWithRed:0.35 green:0.27 blue:0.20 alpha:0.85];
-    [self.interactiveLayer addSubview:sub];
+    [self.headerInfoLayer addSubview:sub];
+}
 
-    CGFloat btnSpacing = 10.0;
-    CGFloat btnW = (contentW - btnSpacing) / 2.0;
-    UIButton *tgBtn = [self createThemeButton:@"Telegram" frame:CGRectMake(0, 114, btnW, 44)];
+// 2. Нижний блок действий: Кнопки строго внизу по макету
+- (void)setupBottomActions {
+    WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
+    CGFloat screenW = self.view.bounds.size.width;
+    CGFloat screenH = self.view.bounds.size.height;
+
+    CGFloat actionsW = screenW - 80;
+    CGFloat actionsH = 160;
+    // Позиционируем в нижней части экрана
+    CGFloat bottomY = screenH * 0.77;
+
+    self.bottomActionsLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - actionsW) / 2.0 + 30, bottomY + 30, actionsW, actionsH)];
+    [self.sceneContainer addSubview:self.bottomActionsLayer];
+
+    // Кнопки соцсетей (Telegram / GitHub)
+    CGFloat btnSpacing = 12.0;
+    CGFloat btnW = (actionsW - btnSpacing) / 2.0;
+    UIButton *tgBtn = [self createThemeButton:@"Telegram" frame:CGRectMake(0, 0, btnW, 46)];
     [tgBtn addTarget:self action:@selector(openTelegram) forControlEvents:UIControlEventTouchUpInside];
-    [self.interactiveLayer addSubview:tgBtn];
+    [self.bottomActionsLayer addSubview:tgBtn];
 
-    UIButton *ghBtn = [self createThemeButton:@"GitHub" frame:CGRectMake(btnW + btnSpacing, 114, btnW, 44)];
+    UIButton *ghBtn = [self createThemeButton:@"GitHub" frame:CGRectMake(btnW + btnSpacing, 0, btnW, 46)];
     [ghBtn addTarget:self action:@selector(openGithub) forControlEvents:UIControlEventTouchUpInside];
-    [self.interactiveLayer addSubview:ghBtn];
+    [self.bottomActionsLayer addSubview:ghBtn];
 
-    UIButton *contBtn = [self createThemeButton:cfg.continueButtonText frame:CGRectMake(0, 168, contentW, 46)];
+    // Кнопка "Продолжить"
+    UIButton *contBtn = [self createThemeButton:cfg.continueButtonText frame:CGRectMake(0, 56, actionsW, 48)];
     [contBtn addTarget:self action:@selector(dismissScreen) forControlEvents:UIControlEventTouchUpInside];
-    [self.interactiveLayer addSubview:contBtn];
+    [self.bottomActionsLayer addSubview:contBtn];
 
+    // Кнопка "Больше не показывать"
     UIButton *neverBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    neverBtn.frame = CGRectMake(0, 222, contentW, 26);
+    neverBtn.frame = CGRectMake(0, 114, actionsW, 26);
     [neverBtn setTitle:cfg.neverShowText forState:UIControlStateNormal];
-    [neverBtn setTitleColor:[UIColor colorWithRed:0.26 green:0.18 blue:0.12 alpha:0.88] forState:UIControlStateNormal];
+    [neverBtn setTitleColor:[UIColor colorWithRed:0.26 green:0.18 blue:0.12 alpha:0.90] forState:UIControlStateNormal];
     neverBtn.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
     [neverBtn addTarget:self action:@selector(neverShowAgain) forControlEvents:UIControlEventTouchUpInside];
-    [self.interactiveLayer addSubview:neverBtn];
+    [self.bottomActionsLayer addSubview:neverBtn];
 }
 
 - (UIButton *)createThemeButton:(NSString *)title frame:(CGRect)frame {
@@ -219,9 +246,11 @@
     [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     btn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
-    btn.layer.cornerRadius = 13.0;
+    btn.layer.cornerRadius = 14.0;
+    
     btn.layer.borderWidth = 0.8;
     btn.layer.borderColor = [UIColor colorWithRed:0.42 green:0.32 blue:0.22 alpha:0.55].CGColor;
+    
     btn.layer.shadowColor = [UIColor blackColor].CGColor;
     btn.layer.shadowOpacity = 0.35;
     btn.layer.shadowRadius = 5.0;
@@ -247,8 +276,9 @@
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
     [self addParallaxEffectToView:self.backgroundImageView depth:6.0];
     [self addParallaxEffectToView:self.plaquesLayer depth:cfg.plaqueParallaxDepth];
-    [self addParallaxEffectToView:self.interactiveLayer depth:26.0];
+    [self addParallaxEffectToView:self.headerInfoLayer depth:24.0];
     [self addParallaxEffectToView:self.metalLogoView depth:48.0];
+    [self addParallaxEffectToView:self.bottomActionsLayer depth:20.0];
 }
 
 - (void)openTelegram {
