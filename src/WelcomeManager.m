@@ -52,7 +52,6 @@
         return;
     }
 
-    // Фиксируем показ для текущей сессии
     self.welcomeShownThisSession = YES;
 
     WelcomeViewController *welcomeVC = [[WelcomeViewController alloc] init];
@@ -65,7 +64,7 @@
 - (UIWindow *)findKeyWindow {
     if (@available(iOS 13.0, *)) {
         for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
-            if ([scene isKindOfClass:[UIWindowScene class]]) {
+            if (scene.activationState == UISceneActivationStateForegroundActive && [scene isKindOfClass:[UIWindowScene class]]) {
                 UIWindowScene *windowScene = (UIWindowScene *)scene;
                 for (UIWindow *window in windowScene.windows) {
                     if (window.isKeyWindow) {
@@ -76,13 +75,15 @@
         }
     }
 
-    for (UIWindow *window in [UIApplication sharedApplication].windows) {
-        if (window.isKeyWindow) {
-            return window;
-        }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    id<UIApplicationDelegate> appDelegate = [UIApplication sharedApplication].delegate;
+    if ([appDelegate respondsToSelector:@selector(window)] && appDelegate.window) {
+        return appDelegate.window;
     }
+#pragma clang diagnostic pop
 
-    return [UIApplication sharedApplication].delegate.window;
+    return nil;
 }
 
 - (UIViewController *)topViewControllerFrom:(UIViewController *)rootVC {

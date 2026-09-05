@@ -7,10 +7,10 @@ TWEAK_NAME = WelcomeToJapan
 
 WelcomeToJapan_FILES = src/Tweak.xm src/WelcomeViewController.m src/WelcomeConfig.m src/WelcomeManager.m src/WelcomeAssets.m
 WelcomeToJapan_FRAMEWORKS = UIKit QuartzCore CoreGraphics
-WelcomeToJapan_CFLAGS = -fobjc-arc
+WelcomeToJapan_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 
-BUNDLE_NAME = WelcomeToJapan
-WelcomeToJapan_INSTALL_PATH = /Library/Application Support/WelcomeToJapan
+BUNDLE_NAME = WelcomeToJapanResources
+WelcomeToJapanResources_INSTALL_PATH = /Library/Application Support/WelcomeToJapan
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 include $(THEOS_MAKE_PATH)/bundle.mk
