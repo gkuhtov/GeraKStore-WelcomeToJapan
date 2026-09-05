@@ -24,11 +24,11 @@
         _leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
         _rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
 
-        // Скорректированные пропорции и координаты дощечек
-        _plaqueSize = CGSizeMake(48, 230);
-        _leftPlaqueOrigin = CGPointMake(14, 0.42);
-        _rightPlaqueOrigin = CGPointMake(14, 0.43);
-        _plaqueParallaxDepth = 18.0;
+        // Увеличенные солидные дощечки
+        _plaqueSize = CGSizeMake(62, 265);
+        _leftPlaqueOrigin = CGPointMake(12, 0.44);   // плотнее к краю и чуть ниже
+        _rightPlaqueOrigin = CGPointMake(12, 0.44);
+        _plaqueParallaxDepth = 16.0;
     }
     return self;
 }
