@@ -15,38 +15,51 @@
 
 - (UIImage *)imageFromBase64:(NSString *)base64Str {
     if (!base64Str || base64Str.length == 0) return nil;
-    NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Str options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    return [UIImage imageWithData:data];
+    @try {
+        NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Str options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        if (data) {
+            return [UIImage imageWithData:data];
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[WelcomeToJapan] Base64 decode failed: %@", e);
+    }
+    return nil;
 }
 
 - (UIImage *)removeBlackBackground:(UIImage *)image {
     if (!image) return nil;
     CGImageRef rawRef = image.CGImage;
+    if (!rawRef) return image;
+    
+    // Безопасное маскирование черного цвета
     const CGFloat maskColors[6] = {0, 30, 0, 30, 0, 30};
     CGImageRef maskedRef = CGImageCreateWithMaskingColors(rawRef, maskColors);
     if (!maskedRef) return image;
+    
     UIImage *cleanImage = [UIImage imageWithCGImage:maskedRef scale:image.scale orientation:image.imageOrientation];
     CGImageRelease(maskedRef);
-    return cleanImage;
+    return cleanImage ?: image;
 }
 
 - (UIImage *)extractSinglePlaque:(UIImage *)sourceImage {
     if (!sourceImage) return nil;
     CGImageRef cgImg = sourceImage.CGImage;
+    if (!cgImg) return sourceImage;
+    
     size_t fullW = CGImageGetWidth(cgImg);
     size_t fullH = CGImageGetHeight(cgImg);
+    if (fullW == 0 || fullH == 0) return sourceImage;
     
-    CGRect cropRect = CGRectMake(0, 0, fullW * 0.48, fullH);
+    CGRect cropRect = CGRectMake(0, 0, (CGFloat)fullW * 0.48, (CGFloat)fullH);
     CGImageRef croppedRef = CGImageCreateWithImageInRect(cgImg, cropRect);
     if (!croppedRef) return sourceImage;
     
     UIImage *plaque = [UIImage imageWithCGImage:croppedRef scale:sourceImage.scale orientation:sourceImage.imageOrientation];
     CGImageRelease(croppedRef);
-    return plaque;
+    return plaque ?: sourceImage;
 }
 
 - (void)viewDidLoad {
-    [super awakeFromNib];
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
 
@@ -84,7 +97,6 @@
     if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
-    // Левая дощечка
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
     CGFloat leftY = (screenH * cfg.leftPlaqueOrigin.y) + 30;
     UIView *leftPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -93,7 +105,6 @@
                                                isRight:NO];
     [self.plaquesLayer addSubview:leftPlaque];
 
-    // Правая дощечка
     CGFloat rightX = screenW - cfg.rightPlaqueOrigin.x - cfg.plaqueSize.width + 30;
     CGFloat rightY = (screenH * cfg.rightPlaqueOrigin.y) + 30;
     UIView *rightPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -115,7 +126,6 @@
     plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 7);
     [container addSubview:plaqueBg];
 
-    // Отступы строго внутрь деревянной фаски: сверху и снизу по 22 pt!
     CGFloat topPadding = 24.0;
     CGFloat bottomPadding = 22.0;
     CGFloat innerW = frame.size.width - 10.0;
@@ -128,7 +138,6 @@
     lbl.font = [UIFont systemFontOfSize:15 weight:UIFontWeightHeavy];
     lbl.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.95];
     
-    // Эффект глубокой гравировки
     lbl.layer.shadowColor = [UIColor colorWithRed:0.98 green:0.93 blue:0.86 alpha:0.8].CGColor;
     lbl.layer.shadowOpacity = 1.0;
     lbl.layer.shadowRadius = 0.5;
@@ -143,7 +152,6 @@
     CGFloat screenW = self.view.bounds.size.width;
     CGFloat screenH = self.view.bounds.size.height;
 
-    // Смещаем блок интерфейса еще ниже в ложбину
     CGFloat contentW = screenW - 140;
     CGFloat contentH = 340;
     CGFloat startY = screenH * 0.49;
@@ -151,7 +159,6 @@
     self.interactiveLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - contentW) / 2.0 + 30, startY + 30, contentW, contentH)];
     [self.sceneContainer addSubview:self.interactiveLayer];
 
-    // Шильдик GeraK STORE (крупный и выразительный)
     UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
     if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
@@ -167,7 +174,6 @@
     self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 8);
     [self.interactiveLayer addSubview:self.metalLogoView];
 
-    // Заголовок
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 44, contentW, 28)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
@@ -175,7 +181,6 @@
     title.textColor = [UIColor colorWithRed:0.18 green:0.12 blue:0.08 alpha:1.0];
     [self.interactiveLayer addSubview:title];
 
-    // Подзаголовок
     UILabel *sub = [[UILabel alloc] initWithFrame:CGRectMake(0, 74, contentW, 30)];
     sub.text = cfg.sublineText;
     sub.textAlignment = NSTextAlignmentCenter;
@@ -184,7 +189,6 @@
     sub.textColor = [UIColor colorWithRed:0.35 green:0.27 blue:0.20 alpha:0.85];
     [self.interactiveLayer addSubview:sub];
 
-    // Кнопки соцсетей
     CGFloat btnSpacing = 10.0;
     CGFloat btnW = (contentW - btnSpacing) / 2.0;
     UIButton *tgBtn = [self createThemeButton:@"Telegram" frame:CGRectMake(0, 114, btnW, 44)];
@@ -195,12 +199,10 @@
     [ghBtn addTarget:self action:@selector(openGithub) forControlEvents:UIControlEventTouchUpInside];
     [self.interactiveLayer addSubview:ghBtn];
 
-    // Главная кнопка "Продолжить"
     UIButton *contBtn = [self createThemeButton:cfg.continueButtonText frame:CGRectMake(0, 168, contentW, 46)];
     [contBtn addTarget:self action:@selector(dismissScreen) forControlEvents:UIControlEventTouchUpInside];
     [self.interactiveLayer addSubview:contBtn];
 
-    // "Больше не показывать" компактно под кнопкой (не наползает на волну)
     UIButton *neverBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     neverBtn.frame = CGRectMake(0, 222, contentW, 26);
     [neverBtn setTitle:cfg.neverShowText forState:UIControlStateNormal];
@@ -218,10 +220,8 @@
     [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     btn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
     btn.layer.cornerRadius = 13.0;
-    
     btn.layer.borderWidth = 0.8;
     btn.layer.borderColor = [UIColor colorWithRed:0.42 green:0.32 blue:0.22 alpha:0.55].CGColor;
-    
     btn.layer.shadowColor = [UIColor blackColor].CGColor;
     btn.layer.shadowOpacity = 0.35;
     btn.layer.shadowRadius = 5.0;
