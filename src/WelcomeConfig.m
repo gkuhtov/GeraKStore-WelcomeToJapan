@@ -3,31 +3,33 @@
 @implementation WelcomeConfig
 
 + (instancetype)sharedConfig {
-    static WelcomeConfig *config = nil;
+    static WelcomeConfig *cfg = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        config = [[WelcomeConfig alloc] init];
-        
-        // Тексты
-        config.headlineText = @"Добро пожаловать";
-        config.sublineText = @"Подготовлено и распространяется через GeraKStore";
-        config.leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
-        config.rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
-        config.continueButtonText = @"Продолжить";
-        config.neverShowText = @"Больше не показывать";
-        
-        // Ссылки
-        config.telegramUrl = @"https://t.me/your_store";
-        config.githubUrl = @"https://github.com/gkuhtov";
-        
-        // Глубина параллакса для каждого слоя
-        config.bgTiltDepth = 8.0;
-        config.treeTiltDepth = 18.0;
-        config.waveTiltDepth = 32.0;
-        config.cardTiltDepth = 22.0;
-        config.plaqueTiltDepth = 45.0; // Таблички двигаются сильнее всего
+        cfg = [[self alloc] init];
     });
-    return config;
+    return cfg;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _headlineText = @"Добро пожаловать";
+        _sublineText = @"Подготовлено и распространяется\nчерез GeraKStore";
+        _continueButtonText = @"Продолжить";
+        _neverShowText = @"Больше не показывать";
+        _telegramUrl = @"https://t.me/GeraKStore";
+        _githubUrl = @"https://github.com/gkuhtov";
+
+        _leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
+        _rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
+
+        _plaqueSize = CGSizeMake(44, 210);
+        _leftPlaqueOrigin = CGPointMake(16, 0.40);
+        _rightPlaqueOrigin = CGPointMake(16, 0.41);
+        _plaqueParallaxDepth = 18.0;
+    }
+    return self;
 }
 
 @end
