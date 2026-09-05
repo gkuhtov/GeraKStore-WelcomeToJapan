@@ -1,0 +1,29 @@
+{
+  "texts": {
+    "headline": "Добро пожаловать",
+    "subline": "Подготовлено и распространяется через",
+    "storeSubtitle": "GeraKStore",
+    "continueButton": "Продолжить",
+    "neverShow": "Больше не показывать",
+    "leftPlaque": "У\nД\nА\nЛ\nИ\nЛ\nИ\n?",
+    "rightPlaque": "Я\n\nВ\nЕ\nР\nН\nУ\nЛ"
+  },
+  "links": {
+    "telegram": "https://t.me/GeraKStore",
+    "github": "https://github.com/gkuhtov"
+  },
+  "plaques": {
+    "width": 88,
+    "height": 340,
+    "leftOriginX": 12,
+    "leftOriginYRatio": 0.38,
+    "rightOriginX": 12,
+    "rightOriginYRatio": 0.38,
+    "parallaxDepth": 18.0
+  },
+  "pulse": {
+    "enabled": true,
+    "scale": 1.08,
+    "hapticEnabled": true
+  }
+}

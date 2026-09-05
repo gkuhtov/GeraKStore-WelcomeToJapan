@@ -18,17 +18,6 @@
 
 @implementation WelcomeViewController
 
-- (UIImage *)imageFromBase64:(NSString *)base64Str {
-    if (!base64Str || base64Str.length == 0) return nil;
-    @try {
-        NSData *data = [[NSData alloc] initWithBase64EncodedString:base64Str options:NSDataBase64DecodingIgnoreUnknownCharacters];
-        if (data) return [UIImage imageWithData:data];
-    } @catch (NSException *e) {
-        NSLog(@"[WelcomeToJapan] Base64 decode error: %@", e);
-    }
-    return nil;
-}
-
 - (UIImage *)removeBlackBackground:(UIImage *)image {
     if (!image) return nil;
     CGImageRef rawRef = image.CGImage;
@@ -94,8 +83,7 @@
     self.backgroundImageView.clipsToBounds = YES;
     self.backgroundImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
-    UIImage *bg = [self imageFromBase64:kWelcomeBackgroundBase64];
-    if (!bg) bg = [UIImage imageNamed:@"welcome_bg.jpg"];
+    UIImage *bg = [WelcomeAssets imageNamed:@"welcome_bg.jpg"];
     self.backgroundImageView.image = bg;
     [self.sceneContainer addSubview:self.backgroundImageView];
 }
@@ -108,8 +96,7 @@
     self.plaquesLayer = [[UIView alloc] initWithFrame:self.sceneContainer.bounds];
     [self.sceneContainer addSubview:self.plaquesLayer];
 
-    UIImage *rawPlaques = [self imageFromBase64:kPlaquesBase64];
-    if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
+    UIImage *rawPlaques = [WelcomeAssets imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
@@ -174,7 +161,6 @@
     self.headerInfoLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - headerW) / 2.0 + 30, startY + 30, headerW, headerH)];
     [self.sceneContainer addSubview:self.headerInfoLayer];
 
-    // Тончайшая полупрозрачная подложка под текстом (эффект матовой слюды) для идеальной читаемости
     UIView *micaBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 105, headerW, 115)];
     micaBackground.backgroundColor = [UIColor colorWithRed:0.98 green:0.95 blue:0.90 alpha:0.08];
     micaBackground.layer.cornerRadius = 16.0;
@@ -183,8 +169,7 @@
     micaBackground.clipsToBounds = YES;
     [self.headerInfoLayer addSubview:micaBackground];
 
-    UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
-    if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
+    UIImage *rawLogo = [WelcomeAssets imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
 
     CGFloat logoW = 250.0;
@@ -192,14 +177,12 @@
     self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -14, logoW, logoH)];
     self.metalLogoView.contentMode = UIViewContentModeScaleAspectFit;
     self.metalLogoView.image = cleanLogo;
-    // Глубокая рассеянная тень, вплавляющая значок в бумагу
     self.metalLogoView.layer.shadowColor = [UIColor blackColor].CGColor;
     self.metalLogoView.layer.shadowOpacity = 0.55;
     self.metalLogoView.layer.shadowRadius = 18.0;
     self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 10);
     [self.headerInfoLayer addSubview:self.metalLogoView];
 
-    // Заголовок (Serif)
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 122, headerW, 32)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
@@ -209,7 +192,6 @@
     title.textColor = [UIColor colorWithRed:0.16 green:0.10 blue:0.06 alpha:1.0];
     [self.headerInfoLayer addSubview:title];
 
-    // Подзаголовок Строка 1
     UILabel *subLine1 = [[UILabel alloc] initWithFrame:CGRectMake(0, 158, headerW, 20)];
     subLine1.text = cfg.sublineText;
     subLine1.textAlignment = NSTextAlignmentCenter;
@@ -217,7 +199,6 @@
     subLine1.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.90];
     [self.headerInfoLayer addSubview:subLine1];
 
-    // Строка 2: GeraKStore
     UILabel *subLine2 = [[UILabel alloc] initWithFrame:CGRectMake(0, 178, headerW, 24)];
     subLine2.text = cfg.storeSubtitleText;
     subLine2.textAlignment = NSTextAlignmentCenter;
@@ -291,7 +272,6 @@
     }
 }
 
-// Архивный двухтактный пульс (сердцебиение: быстрый удар, короткий спад, пауза) + тактильный отклик
 - (void)startArchiveHeartbeatPulse {
     CAKeyframeAnimation *pulseAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
     pulseAnim.values = @[@1.0, @1.08, @1.02, @1.06, @1.0];
@@ -306,9 +286,20 @@
     
     [self.metalLogoView.layer addAnimation:pulseAnim forKey:@"gerastore.ambient.stars"];
     
-    // Синхронизированный тактильный удар под ритм сердцебиения
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [self scheduleNextHeartbeatPulse];
+}
+
+- (void)scheduleNextHeartbeatPulse {
+    if (![WelcomeConfig sharedConfig].pulseEnabled) return;
+    
+    [self triggerHaptic];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.12 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self triggerHaptic];
+    });
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self scheduleNextHeartbeatPulse];
     });
 }
 
