@@ -15,7 +15,8 @@
     self = [super init];
     if (self) {
         _headlineText = @"Добро пожаловать";
-        _sublineText = @"Подготовлено и распространяется\nчерез GeraKStore";
+        _sublineText = @"Подготовлено и распространяется через";
+        _storeSubtitleText = @"GeraKStore";
         _continueButtonText = @"Продолжить";
         _neverShowText = @"Больше не показывать";
         _telegramUrl = @"https://t.me/GeraKStore";
@@ -24,10 +25,14 @@
         _leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
         _rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
 
-        _plaqueSize = CGSizeMake(44, 210);
-        _leftPlaqueOrigin = CGPointMake(16, 0.40);
-        _rightPlaqueOrigin = CGPointMake(16, 0.41);
+        _plaqueSize = CGSizeMake(88, 340);
+        _leftPlaqueOrigin = CGPointMake(12, 0.38);
+        _rightPlaqueOrigin = CGPointMake(12, 0.38);
         _plaqueParallaxDepth = 18.0;
+
+        _pulseEnabled = YES;
+        _pulseScale = 1.08;
+        _hapticEnabled = YES;
     }
     return self;
 }
