@@ -2,6 +2,7 @@
 #import "WelcomeConfig.h"
 #import "WelcomeAssets.h"
 #import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
 
 @interface WelcomeViewController ()
 @property (nonatomic, strong) UIView *sceneContainer;
@@ -10,6 +11,7 @@
 @property (nonatomic, strong) UIView *headerInfoLayer;
 @property (nonatomic, strong) UIView *bottomActionsLayer;
 @property (nonatomic, strong) UIImageView *metalLogoView;
+@property (nonatomic, strong) UIImpactFeedbackGenerator *hapticGenerator;
 @end
 
 @implementation WelcomeViewController
@@ -60,6 +62,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
+    
+    // Защита от случайного закрытия свайпом (Swipe-to-Dismiss)
+    self.modalInPresentation = YES;
+
+    if ([WelcomeConfig sharedConfig].hapticEnabled) {
+        self.hapticGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+        [self.hapticGenerator prepare];
+    }
 
     self.sceneContainer = [[UIView alloc] initWithFrame:CGRectInset(self.view.bounds, -30, -30)];
     self.sceneContainer.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -70,6 +80,10 @@
     [self setupHeaderInfo];
     [self setupBottomActions];
     [self applyMultiDepthParallax];
+    
+    if ([WelcomeConfig sharedConfig].pulseEnabled) {
+        [self startLogoPulseAnimation];
+    }
 }
 
 - (void)setupBackground {
@@ -96,6 +110,7 @@
     if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
+    // Адаптивная позиция плашек по высоте экрана
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
     CGFloat leftY = (screenH * cfg.leftPlaqueOrigin.y) + 30;
     UIView *leftPlaque = [self buildPlaqueViewWithImage:singlePlaque
@@ -120,13 +135,13 @@
     plaqueBg.contentMode = UIViewContentModeScaleToFill;
     plaqueBg.image = plaqueImage;
     plaqueBg.layer.shadowColor = [UIColor blackColor].CGColor;
-    plaqueBg.layer.shadowOpacity = 0.55;
-    plaqueBg.layer.shadowRadius = 10.0;
-    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 7);
+    plaqueBg.layer.shadowOpacity = 0.58;
+    plaqueBg.layer.shadowRadius = 11.0;
+    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 8);
     [container addSubview:plaqueBg];
 
-    CGFloat topPadding = 28.0;
-    CGFloat bottomPadding = 26.0;
+    CGFloat topPadding = 32.0;
+    CGFloat bottomPadding = 30.0;
     CGFloat innerW = frame.size.width - 12.0;
     CGFloat innerH = frame.size.height - topPadding - bottomPadding;
 
@@ -134,7 +149,7 @@
     lbl.text = text;
     lbl.textAlignment = NSTextAlignmentCenter;
     lbl.numberOfLines = 0;
-    lbl.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
+    lbl.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
     lbl.textColor = [UIColor colorWithRed:0.20 green:0.11 blue:0.06 alpha:0.98];
     
     lbl.layer.shadowColor = [UIColor colorWithRed:0.98 green:0.93 blue:0.86 alpha:0.85].CGColor;
@@ -151,21 +166,20 @@
     CGFloat screenW = self.view.bounds.size.width;
     CGFloat screenH = self.view.bounds.size.height;
 
-    CGFloat headerW = screenW - 130;
+    CGFloat headerW = screenW - 140;
     CGFloat headerH = 240;
-    CGFloat startY = screenH * 0.39;
+    CGFloat startY = screenH * 0.37;
 
     self.headerInfoLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - headerW) / 2.0 + 30, startY + 30, headerW, headerH)];
     [self.sceneContainer addSubview:self.headerInfoLayer];
 
-    // Металлический шильдик
     UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
     if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
 
-    CGFloat logoW = 245.0;
-    CGFloat logoH = 122.0;
-    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -8, logoW, logoH)];
+    CGFloat logoW = 250.0;
+    CGFloat logoH = 125.0;
+    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -12, logoW, logoH)];
     self.metalLogoView.contentMode = UIViewContentModeScaleAspectFit;
     self.metalLogoView.image = cleanLogo;
     self.metalLogoView.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -174,7 +188,7 @@
     self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 8);
     [self.headerInfoLayer addSubview:self.metalLogoView];
 
-    // Заголовок "Добро пожаловать" (Serif)
+    // Заголовок (Serif)
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 122, headerW, 32)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
@@ -184,20 +198,22 @@
     title.textColor = [UIColor colorWithRed:0.16 green:0.10 blue:0.06 alpha:1.0];
     [self.headerInfoLayer addSubview:title];
 
-    // Подзаголовок: Строка 1 ("Подготовлено и распространяется через")
+    // Подзаголовок Строка 1
     UILabel *subLine1 = [[UILabel alloc] initWithFrame:CGRectMake(0, 158, headerW, 20)];
     subLine1.text = cfg.sublineText;
     subLine1.textAlignment = NSTextAlignmentCenter;
-    subLine1.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
+    subLine1.font = [UIFont systemFontOfSize:12.5 weight:UIFontWeightMedium];
     subLine1.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.90];
     [self.headerInfoLayer addSubview:subLine1];
 
-    // Подзаголовок: Строка 2 ("GeraKStore" — смещена вправо для визуального баланса)
-    UILabel *subLine2 = [[UILabel alloc] initWithFrame:CGRectMake(24, 178, headerW, 22)];
-    subLine2.text = @"GeraKStore";
+    // Строка 2: GeraKStore (строго по центру, другой шрифт, чуть плотнее)
+    UILabel *subLine2 = [[UILabel alloc] initWithFrame:CGRectMake(0, 178, headerW, 24)];
+    subLine2.text = cfg.storeSubtitleText;
     subLine2.textAlignment = NSTextAlignmentCenter;
-    subLine2.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
-    subLine2.textColor = [UIColor colorWithRed:0.15 green:0.09 blue:0.05 alpha:1.0];
+    UIFont *storeFont = [UIFont fontWithName:@"Georgia-Medium" size:15.5];
+    if (!storeFont) storeFont = [UIFont systemFontOfSize:15.5 weight:UIFontWeightSemibold];
+    subLine2.font = storeFont;
+    subLine2.textColor = [UIColor colorWithRed:0.14 green:0.08 blue:0.04 alpha:1.0];
     [self.headerInfoLayer addSubview:subLine2];
 }
 
@@ -208,7 +224,6 @@
 
     CGFloat actionsW = screenW - 80;
     CGFloat actionsH = 160;
-    // Позиция кнопок сохранена ровно на твоих координатах
     CGFloat bottomY = screenH * 0.77;
 
     self.bottomActionsLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - actionsW) / 2.0 + 30, bottomY + 30, actionsW, actionsH)];
@@ -216,6 +231,7 @@
 
     CGFloat btnSpacing = 12.0;
     CGFloat btnW = (actionsW - btnSpacing) / 2.0;
+    
     UIButton *tgBtn = [self createThemeButton:@"Telegram" frame:CGRectMake(0, 0, btnW, 46)];
     [tgBtn addTarget:self action:@selector(openTelegram) forControlEvents:UIControlEventTouchUpInside];
     [self.bottomActionsLayer addSubview:tgBtn];
@@ -253,7 +269,31 @@
     btn.layer.shadowOpacity = 0.35;
     btn.layer.shadowRadius = 5.0;
     btn.layer.shadowOffset = CGSizeMake(0, 3);
+    
+    [btn addTarget:self action:@selector(triggerHaptic) forControlEvents:UIControlEventTouchDown];
     return btn;
+}
+
+- (void)triggerHaptic {
+    if (self.hapticGenerator) {
+        [self.hapticGenerator impactOccurred];
+    }
+}
+
+// Логика «сердцебиения» (Pulse) логотипа из архива
+- (void)startLogoPulseAnimation {
+    CAKeyframeAnimation *scaleAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+    scaleAnim.values = @[@1.0, @([WelcomeConfig sharedConfig].pulseScale), @1.0, @1.0];
+    scaleAnim.keyTimes = @[@0.0, @0.15, @0.30, @1.0];
+    scaleAnim.duration = 2.4;
+    scaleAnim.repeatCount = HUGE_VALF;
+    scaleAnim.removedOnCompletion = NO;
+    scaleAnim.fillMode = kCAFillModeForwards;
+    
+    CAMediaTimingFunction *easeInOut = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    scaleAnim.timingFunctions = @[easeInOut, easeInOut, easeInOut];
+    
+    [self.metalLogoView.layer addAnimation:scaleAnim forKey:@"gerastore.ambient.stars"];
 }
 
 - (void)addParallaxEffectToView:(UIView *)target depth:(CGFloat)depth {
@@ -280,18 +320,22 @@
 }
 
 - (void)openTelegram {
+    [self triggerHaptic];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[WelcomeConfig sharedConfig].telegramUrl] options:@{} completionHandler:nil];
 }
 
 - (void)openGithub {
+    [self triggerHaptic];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[WelcomeConfig sharedConfig].githubUrl] options:@{} completionHandler:nil];
 }
 
 - (void)dismissScreen {
+    [self triggerHaptic];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)neverShowAgain {
+    [self triggerHaptic];
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"com.gkuhtov.WelcomeToJapan.hasSeenWelcome"];
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self dismissScreen];
