@@ -26,18 +26,35 @@
     [self presentWithRetryCount:0];
 }
 
-- (void)presentWithRetryCount:(NSInteger)retries {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        UIWindow *keyWindow = nil;
-        for (UIWindow *win in [UIApplication sharedApplication].windows) {
-            if (win.isKeyWindow) {
-                keyWindow = win;
-                break;
+- (UIWindow *)findActiveKeyWindow {
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (scene.activationState == UISceneActivationStateForegroundActive && [scene isKindOfClass:[UIWindowScene class]]) {
+            UIWindowScene *windowScene = (UIWindowScene *)scene;
+            for (UIWindow *win in windowScene.windows) {
+                if (win.isKeyWindow) {
+                    return win;
+                }
+            }
+            if (windowScene.windows.count > 0) {
+                return windowScene.windows.firstObject;
             }
         }
-        if (!keyWindow && [UIApplication sharedApplication].windows.count > 0) {
-            keyWindow = [UIApplication sharedApplication].windows.firstObject;
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    for (UIWindow *win in [UIApplication sharedApplication].windows) {
+        if (win.isKeyWindow) {
+            return win;
         }
+    }
+    return [UIApplication sharedApplication].windows.firstObject;
+#pragma clang diagnostic pop
+}
+
+- (void)presentWithRetryCount:(NSInteger)retries {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        UIWindow *keyWindow = [self findActiveKeyWindow];
 
         UIViewController *topVC = keyWindow.rootViewController;
         while (topVC.presentedViewController) {
