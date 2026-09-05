@@ -18,6 +18,7 @@
     self.view.backgroundColor = [UIColor blackColor];
 
     self.containerView = [[UIView alloc] initWithFrame:self.view.bounds];
+    self.containerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:self.containerView];
 
     [self renderBackground];
@@ -33,9 +34,9 @@
     CAGradientLayer *paper = [CAGradientLayer layer];
     paper.frame = self.backgroundLayer.bounds;
     paper.colors = @[
-        (id)[UIColor colorWithRed:0.91 green:0.87 blue:0.80 alpha:1.0].CGColor,
-        (id)[UIColor colorWithRed:0.85 green:0.80 blue:0.72 alpha:1.0].CGColor,
-        (id)[UIColor colorWithRed:0.80 green:0.74 blue:0.65 alpha:1.0].CGColor
+        (id)[UIColor colorWithRed:0.92 green:0.88 blue:0.81 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.86 green:0.81 blue:0.73 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.81 green:0.75 blue:0.66 alpha:1.0].CGColor
     ];
     paper.locations = @[@0.0, @0.5, @1.0];
     [self.backgroundLayer.layer addSublayer:paper];
@@ -44,62 +45,56 @@
 
 - (void)renderBonsaiTree {
     CGFloat w = self.view.bounds.size.width;
-    self.treeLayer = [[UIView alloc] initWithFrame:CGRectMake(0, 20, w, 280)];
-    
-    // Ствол бонсая
+    self.treeLayer = [[UIView alloc] initWithFrame:CGRectMake(0, 30, w, 260)];
+
     UIBezierPath *trunk = [UIBezierPath bezierPath];
-    [trunk moveToPoint:CGPointMake(w + 30, 200)];
-    [trunk addCurveToPoint:CGPointMake(w * 0.55, 110) controlPoint1:CGPointMake(w * 0.85, 160) controlPoint2:CGPointMake(w * 0.7, 120)];
-    [trunk addCurveToPoint:CGPointMake(w * 0.15, 140) controlPoint1:CGPointMake(w * 0.4, 100) controlPoint2:CGPointMake(w * 0.25, 125)];
-    [trunk addLineToPoint:CGPointMake(w * 0.12, 148)];
-    [trunk addCurveToPoint:CGPointMake(w * 0.58, 125) controlPoint1:CGPointMake(w * 0.26, 138) controlPoint2:CGPointMake(w * 0.42, 118)];
-    [trunk addCurveToPoint:CGPointMake(w + 40, 240) controlPoint1:CGPointMake(w * 0.72, 138) controlPoint2:CGPointMake(w * 0.88, 185)];
+    [trunk moveToPoint:CGPointMake(w + 20, 180)];
+    [trunk addCurveToPoint:CGPointMake(w * 0.55, 95) controlPoint1:CGPointMake(w * 0.85, 145) controlPoint2:CGPointMake(w * 0.7, 105)];
+    [trunk addCurveToPoint:CGPointMake(w * 0.15, 125) controlPoint1:CGPointMake(w * 0.4, 85) controlPoint2:CGPointMake(w * 0.25, 110)];
+    [trunk addLineToPoint:CGPointMake(w * 0.12, 135)];
+    [trunk addCurveToPoint:CGPointMake(w * 0.58, 110) controlPoint1:CGPointMake(w * 0.26, 125) controlPoint2:CGPointMake(w * 0.42, 105)];
+    [trunk addCurveToPoint:CGPointMake(w + 30, 210) controlPoint1:CGPointMake(w * 0.72, 125) controlPoint2:CGPointMake(w * 0.88, 170)];
     [trunk closePath];
 
     CAShapeLayer *trunkLayer = [CAShapeLayer layer];
     trunkLayer.path = trunk.CGPath;
-    trunkLayer.fillColor = [UIColor colorWithRed:0.32 green:0.18 blue:0.12 alpha:1.0].CGColor;
+    trunkLayer.fillColor = [UIColor colorWithRed:0.33 green:0.20 blue:0.13 alpha:1.0].CGColor;
     trunkLayer.shadowColor = [UIColor blackColor].CGColor;
     trunkLayer.shadowOpacity = 0.35;
     trunkLayer.shadowRadius = 4;
     [self.treeLayer.layer addSublayer:trunkLayer];
 
-    // Кроны бонсая (хвойные шапки)
-    NSArray *clusters = @[
-        [NSValue valueWithCGRect:CGRectMake(w * 0.08, 115, 110, 48)],
-        [NSValue valueWithCGRect:CGRectMake(w * 0.35, 75, 125, 52)],
-        [NSValue valueWithCGRect:CGRectMake(w * 0.62, 50, 130, 56)],
-        [NSValue valueWithCGRect:CGRectMake(w * 0.75, 110, 95, 42)]
+    NSArray *clouds = @[
+        [NSValue valueWithCGRect:CGRectMake(w * 0.07, 100, 105, 45)],
+        [NSValue valueWithCGRect:CGRectMake(w * 0.34, 65, 120, 48)],
+        [NSValue valueWithCGRect:CGRectMake(w * 0.60, 40, 125, 52)],
+        [NSValue valueWithCGRect:CGRectMake(w * 0.74, 95, 90, 38)]
     ];
 
-    for (NSValue *val in clusters) {
+    for (NSValue *val in clouds) {
         CGRect r = [val CGRectValue];
         UIView *cloud = [[UIView alloc] initWithFrame:r];
-        cloud.backgroundColor = [UIColor colorWithRed:0.12 green:0.24 blue:0.18 alpha:0.95];
+        cloud.backgroundColor = [UIColor colorWithRed:0.13 green:0.25 blue:0.19 alpha:0.95];
         cloud.layer.cornerRadius = r.size.height / 2.0;
-        cloud.layer.borderWidth = 2.5;
-        cloud.layer.borderColor = [UIColor colorWithRed:0.07 green:0.16 blue:0.11 alpha:1.0].CGColor;
+        cloud.layer.borderWidth = 2.0;
+        cloud.layer.borderColor = [UIColor colorWithRed:0.08 green:0.17 blue:0.12 alpha:1.0].CGColor;
         cloud.layer.shadowColor = [UIColor blackColor].CGColor;
-        cloud.layer.shadowOpacity = 0.4;
-        cloud.layer.shadowRadius = 5;
-        cloud.layer.shadowOffset = CGSizeMake(0, 4);
+        cloud.layer.shadowOpacity = 0.35;
+        cloud.layer.shadowRadius = 4;
+        cloud.layer.shadowOffset = CGSizeMake(0, 3);
         [self.treeLayer addSubview:cloud];
     }
 
-    // Золотые цветы сакуры
     NSArray *flowers = @[
-        [NSValue valueWithCGPoint:CGPointMake(w * 0.36, 140)],
-        [NSValue valueWithCGPoint:CGPointMake(w * 0.66, 115)]
+        [NSValue valueWithCGPoint:CGPointMake(w * 0.35, 125)],
+        [NSValue valueWithCGPoint:CGPointMake(w * 0.65, 100)]
     ];
     for (NSValue *pt in flowers) {
         CGPoint p = [pt CGPointValue];
-        UILabel *fl = [[UILabel alloc] initWithFrame:CGRectMake(p.x, p.y, 28, 28)];
+        UILabel *fl = [[UILabel alloc] initWithFrame:CGRectMake(p.x, p.y, 26, 26)];
         fl.text = @"❀";
-        fl.font = [UIFont systemFontOfSize:24 weight:UIFontWeightBold];
-        fl.textColor = [UIColor colorWithRed:0.86 green:0.70 blue:0.35 alpha:1.0];
-        fl.layer.shadowColor = [UIColor colorWithRed:0.95 green:0.82 blue:0.4 alpha:0.8].CGColor;
-        fl.layer.shadowOpacity = 0.8;
-        fl.layer.shadowRadius = 6;
+        fl.font = [UIFont boldSystemFontOfSize:22];
+        fl.textColor = [UIColor colorWithRed:0.86 green:0.71 blue:0.36 alpha:1.0];
         [self.treeLayer addSubview:fl];
     }
 
@@ -109,86 +104,61 @@
 - (void)renderHokusaiWave {
     CGFloat w = self.view.bounds.size.width;
     CGFloat h = self.view.bounds.size.height;
-    CGFloat waveH = h * 0.42;
-    
+    CGFloat waveH = h * 0.38;
+
     self.waveLayer = [[UIView alloc] initWithFrame:CGRectMake(0, h - waveH, w, waveH)];
 
-    // Главный гребень волны
     UIBezierPath *wavePath = [UIBezierPath bezierPath];
     [wavePath moveToPoint:CGPointMake(0, waveH)];
-    [wavePath addLineToPoint:CGPointMake(0, waveH * 0.35)];
-    [wavePath addCurveToPoint:CGPointMake(w * 0.6, waveH * 0.25)
+    [wavePath addLineToPoint:CGPointMake(0, waveH * 0.3)];
+    [wavePath addCurveToPoint:CGPointMake(w * 0.6, waveH * 0.22)
                 controlPoint1:CGPointMake(w * 0.15, 0)
-                controlPoint2:CGPointMake(w * 0.45, waveH * 0.65)];
-    [wavePath addCurveToPoint:CGPointMake(w, waveH * 0.1)
-                controlPoint1:CGPointMake(w * 0.75, waveH * -0.15)
-                controlPoint2:CGPointMake(w * 0.9, waveH * 0.4)];
+                controlPoint2:CGPointMake(w * 0.45, waveH * 0.6)];
+    [wavePath addCurveToPoint:CGPointMake(w, waveH * 0.08)
+                controlPoint1:CGPointMake(w * 0.75, waveH * -0.1)
+                controlPoint2:CGPointMake(w * 0.9, waveH * 0.35)];
     [wavePath addLineToPoint:CGPointMake(w, waveH)];
     [wavePath closePath];
 
     CAShapeLayer *wave = [CAShapeLayer layer];
     wave.path = wavePath.CGPath;
-    wave.fillColor = [UIColor colorWithRed:0.11 green:0.22 blue:0.38 alpha:0.95].CGColor;
-    wave.strokeColor = [UIColor colorWithRed:0.92 green:0.94 blue:0.96 alpha:1.0].CGColor;
-    wave.lineWidth = 4.0;
-    wave.shadowColor = [UIColor blackColor].CGColor;
-    wave.shadowOpacity = 0.5;
-    wave.shadowRadius = 8;
+    wave.fillColor = [UIColor colorWithRed:0.12 green:0.23 blue:0.39 alpha:0.95].CGColor;
+    wave.strokeColor = [UIColor colorWithWhite:1.0 alpha:0.9].CGColor;
+    wave.lineWidth = 3.5;
     [self.waveLayer.layer addSublayer:wave];
-
-    // Пена и брызги
-    UIBezierPath *foamPath = [UIBezierPath bezierPath];
-    [foamPath moveToPoint:CGPointMake(0, waveH * 0.38)];
-    [foamPath addCurveToPoint:CGPointMake(w * 0.55, waveH * 0.28)
-                controlPoint1:CGPointMake(w * 0.18, waveH * 0.05)
-                controlPoint2:CGPointMake(w * 0.42, waveH * 0.7)];
-    CAShapeLayer *foam = [CAShapeLayer layer];
-    foam.path = foamPath.CGPath;
-    foam.strokeColor = [UIColor colorWithWhite:1.0 alpha:0.85].CGColor;
-    foam.fillColor = [UIColor clearColor].CGColor;
-    foam.lineWidth = 3.0;
-    foam.lineDashPattern = @[@8, @6];
-    [self.waveLayer.layer addSublayer:foam];
 
     [self.containerView addSubview:self.waveLayer];
 }
 
 - (UIView *)createWoodenPlaque:(NSString *)text frame:(CGRect)frame {
     UIView *plaque = [[UIView alloc] initWithFrame:frame];
-    
-    // Текстура деревянной плашки (градиент под светлое дерево)
+
     CAGradientLayer *wood = [CAGradientLayer layer];
     wood.frame = plaque.bounds;
     wood.colors = @[
-        (id)[UIColor colorWithRed:0.88 green:0.82 blue:0.72 alpha:1.0].CGColor,
-        (id)[UIColor colorWithRed:0.80 green:0.72 blue:0.61 alpha:1.0].CGColor,
-        (id)[UIColor colorWithRed:0.86 green:0.79 blue:0.68 alpha:1.0].CGColor
+        (id)[UIColor colorWithRed:0.88 green:0.81 blue:0.71 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.79 green:0.71 blue:0.60 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.85 green:0.78 blue:0.67 alpha:1.0].CGColor
     ];
     wood.startPoint = CGPointMake(0, 0);
     wood.endPoint = CGPointMake(1, 0);
     wood.cornerRadius = 6;
     [plaque.layer addSublayer:wood];
 
-    // Фаска и объемная 3D-тень
     plaque.layer.cornerRadius = 6;
     plaque.layer.borderWidth = 1.5;
-    plaque.layer.borderColor = [UIColor colorWithRed:0.56 green:0.46 blue:0.35 alpha:0.85].CGColor;
+    plaque.layer.borderColor = [UIColor colorWithRed:0.55 green:0.45 blue:0.34 alpha:0.85].CGColor;
     plaque.layer.shadowColor = [UIColor blackColor].CGColor;
-    plaque.layer.shadowOpacity = 0.38;
-    plaque.layer.shadowRadius = 6;
-    plaque.layer.shadowOffset = CGSizeMake(3, 5);
+    plaque.layer.shadowOpacity = 0.35;
+    plaque.layer.shadowRadius = 5;
+    plaque.layer.shadowOffset = CGSizeMake(2, 4);
 
-    // Вертикальный текст с эффектом гравировки
     UILabel *label = [[UILabel alloc] initWithFrame:plaque.bounds];
     label.text = text;
     label.numberOfLines = 0;
     label.textAlignment = NSTextAlignmentCenter;
-    label.font = [UIFont fontWithName:@"Hiragino Mincho ProN" size:16] ?: [UIFont boldSystemFontOfSize:16];
-    label.textColor = [UIColor colorWithRed:0.25 green:0.18 blue:0.13 alpha:1.0];
-    label.layer.shadowColor = [UIColor colorWithWhite:1.0 alpha:0.6].CGColor;
-    label.layer.shadowOffset = CGSizeMake(0.5, 1.0);
-    label.layer.shadowRadius = 0;
-    label.layer.shadowOpacity = 1.0;
+    label.font = [UIFont boldSystemFontOfSize:15];
+    label.textColor = [UIColor colorWithRed:0.24 green:0.17 blue:0.12 alpha:1.0];
     [plaque addSubview:label];
 
     return plaque;
@@ -196,51 +166,48 @@
 
 - (void)renderPlaques {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
-    CGFloat y = self.view.bounds.size.height * 0.34;
+    CGFloat y = self.view.bounds.size.height * 0.32;
 
-    self.leftPlaqueView = [self createWoodenPlaque:cfg.leftPlaqueText frame:CGRectMake(16, y, 44, 250)];
+    self.leftPlaqueView = [self createWoodenPlaque:cfg.leftPlaqueText frame:CGRectMake(14, y, 42, 250)];
     [self.containerView addSubview:self.leftPlaqueView];
 
-    self.rightPlaqueView = [self createWoodenPlaque:cfg.rightPlaqueText frame:CGRectMake(self.view.bounds.size.width - 60, y, 44, 250)];
+    self.rightPlaqueView = [self createWoodenPlaque:cfg.rightPlaqueText frame:CGRectMake(self.view.bounds.size.width - 56, y, 42, 250)];
     [self.containerView addSubview:self.rightPlaqueView];
 }
 
 - (void)renderCenterCard {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
-    CGFloat w = self.view.bounds.size.width - 80;
+    CGFloat w = self.view.bounds.size.width - 76;
     CGFloat h = 260;
-    CGFloat y = self.view.bounds.size.height * 0.56;
+    CGFloat y = self.view.bounds.size.height * 0.55;
 
-    self.cardView = [[UIView alloc] initWithFrame:CGRectMake(40, y, w, h)];
+    self.cardView = [[UIView alloc] initWithFrame:CGRectMake(38, y, w, h)];
     [self.containerView addSubview:self.cardView];
 
-    // Металлический шильдик GeraK STORE
-    UIView *badge = [[UIView alloc] initWithFrame:CGRectMake((w - 150) / 2.0, -48, 150, 42)];
+    UIView *badge = [[UIView alloc] initWithFrame:CGRectMake((w - 150) / 2.0, -46, 150, 40)];
     CAGradientLayer *metal = [CAGradientLayer layer];
     metal.frame = badge.bounds;
     metal.colors = @[
-        (id)[UIColor colorWithRed:0.46 green:0.23 blue:0.56 alpha:1.0].CGColor,
-        (id)[UIColor colorWithRed:0.28 green:0.12 blue:0.38 alpha:1.0].CGColor
+        (id)[UIColor colorWithRed:0.46 green:0.22 blue:0.56 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.27 green:0.11 blue:0.38 alpha:1.0].CGColor
     ];
     metal.cornerRadius = 12;
     [badge.layer addSublayer:metal];
     badge.layer.cornerRadius = 12;
-    badge.layer.borderWidth = 2.0;
+    badge.layer.borderWidth = 1.8;
     badge.layer.borderColor = [UIColor colorWithRed:0.86 green:0.74 blue:0.52 alpha:1.0].CGColor;
     badge.layer.shadowColor = [UIColor blackColor].CGColor;
-    badge.layer.shadowOpacity = 0.5;
-    badge.layer.shadowRadius = 6;
-    badge.layer.shadowOffset = CGSizeMake(0, 3);
+    badge.layer.shadowOpacity = 0.45;
+    badge.layer.shadowRadius = 5;
 
     UILabel *badgeText = [[UILabel alloc] initWithFrame:badge.bounds];
     badgeText.text = @"GeraK STORE";
     badgeText.textAlignment = NSTextAlignmentCenter;
-    badgeText.font = [UIFont fontWithName:@"AvenirNext-Heavy" size:15] ?: [UIFont boldSystemFontOfSize:15];
+    badgeText.font = [UIFont boldSystemFontOfSize:15];
     badgeText.textColor = [UIColor colorWithRed:0.96 green:0.89 blue:0.75 alpha:1.0];
     [badge addSubview:badgeText];
     [self.cardView addSubview:badge];
 
-    // Заголовок
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 6, w, 30)];
     title.text = cfg.headlineText;
     title.textAlignment = NSTextAlignmentCenter;
@@ -248,7 +215,6 @@
     title.textColor = [UIColor colorWithRed:0.18 green:0.14 blue:0.11 alpha:1.0];
     [self.cardView addSubview:title];
 
-    // Подзаголовок
     UILabel *sub = [[UILabel alloc] initWithFrame:CGRectMake(0, 38, w, 36)];
     sub.text = cfg.sublineText;
     sub.textAlignment = NSTextAlignmentCenter;
@@ -257,7 +223,6 @@
     sub.textColor = [UIColor colorWithRed:0.32 green:0.27 blue:0.22 alpha:0.85];
     [self.cardView addSubview:sub];
 
-    // Кнопки соцсетей
     UIButton *tgBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     tgBtn.frame = CGRectMake(0, 84, (w - 12) / 2.0, 44);
     tgBtn.backgroundColor = [UIColor colorWithRed:0.16 green:0.12 blue:0.10 alpha:0.9];
@@ -278,7 +243,6 @@
     [ghBtn addTarget:self action:@selector(openGithub) forControlEvents:UIControlEventTouchUpInside];
     [self.cardView addSubview:ghBtn];
 
-    // Кнопка Продолжить
     UIButton *contBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     contBtn.frame = CGRectMake(0, 138, w, 46);
     contBtn.backgroundColor = [UIColor colorWithRed:0.16 green:0.12 blue:0.10 alpha:0.9];
@@ -289,7 +253,6 @@
     [contBtn addTarget:self action:@selector(dismissScreen) forControlEvents:UIControlEventTouchUpInside];
     [self.cardView addSubview:contBtn];
 
-    // Кнопка Больше не показывать
     UIButton *neverBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     neverBtn.frame = CGRectMake(0, 194, w, 32);
     [neverBtn setTitle:cfg.neverShowText forState:UIControlStateNormal];
@@ -332,16 +295,11 @@
 }
 
 - (void)dismissScreen {
-    [UIView animateWithDuration:0.35 animations:^{
-        self.view.alpha = 0.0;
-    } completion:^(BOOL finished) {
-        [self.view removeFromSuperview];
-        [self removeFromParentViewController];
-    }];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)neverShowAgain {
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"GeraKWelcomeDismissed"];
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"com.gkuhtov.WelcomeToJapan.hasSeenWelcome"];
     [[NSUserDefaults standardUserDefaults] synchronize];
     [self dismissScreen];
 }
