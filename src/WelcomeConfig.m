@@ -25,14 +25,14 @@
         _leftPlaqueText = @"У\nД\nА\nЛ\nИ\nЛ\nИ\n?";
         _rightPlaqueText = @"Я\n\nВ\nЕ\nР\nН\nУ\nЛ";
 
-        // Крупные, массивные дощечки для любого экрана
+        // Крупные, массивные дощечки
         _plaqueSize = CGSizeMake(88, 340);
         _leftPlaqueOrigin = CGPointMake(12, 0.38);
         _rightPlaqueOrigin = CGPointMake(12, 0.38);
-        _plaqueParallaxDepth = 16.0;
+        _plaqueParallaxDepth = 18.0;
 
         _pulseEnabled = YES;
-        _pulseScale = 1.06;
+        _pulseScale = 1.08;
         _hapticEnabled = YES;
     }
     return self;

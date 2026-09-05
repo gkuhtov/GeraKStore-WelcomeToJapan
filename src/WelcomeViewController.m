@@ -12,6 +12,8 @@
 @property (nonatomic, strong) UIView *bottomActionsLayer;
 @property (nonatomic, strong) UIImageView *metalLogoView;
 @property (nonatomic, strong) UIImpactFeedbackGenerator *hapticGenerator;
+@property (nonatomic, strong) UIView *leftPlaqueView;
+@property (nonatomic, strong) UIView *rightPlaqueView;
 @end
 
 @implementation WelcomeViewController
@@ -82,7 +84,7 @@
     [self applyMultiDepthParallax];
     
     if ([WelcomeConfig sharedConfig].pulseEnabled) {
-        [self startLogoPulseAnimation];
+        [self startArchiveHeartbeatPulse];
     }
 }
 
@@ -110,22 +112,21 @@
     if (!rawPlaques) rawPlaques = [UIImage imageNamed:@"plaques.png"];
     UIImage *singlePlaque = [self extractSinglePlaque:rawPlaques];
 
-    // Адаптивная позиция плашек по высоте экрана
     CGFloat leftX = cfg.leftPlaqueOrigin.x + 30;
     CGFloat leftY = (screenH * cfg.leftPlaqueOrigin.y) + 30;
-    UIView *leftPlaque = [self buildPlaqueViewWithImage:singlePlaque
-                                                  text:cfg.leftPlaqueText
-                                                 frame:CGRectMake(leftX, leftY, cfg.plaqueSize.width, cfg.plaqueSize.height)
-                                               isRight:NO];
-    [self.plaquesLayer addSubview:leftPlaque];
+    self.leftPlaqueView = [self buildPlaqueViewWithImage:singlePlaque
+                                                   text:cfg.leftPlaqueText
+                                                  frame:CGRectMake(leftX, leftY, cfg.plaqueSize.width, cfg.plaqueSize.height)
+                                                isRight:NO];
+    [self.plaquesLayer addSubview:self.leftPlaqueView];
 
     CGFloat rightX = screenW - cfg.rightPlaqueOrigin.x - cfg.plaqueSize.width + 30;
     CGFloat rightY = (screenH * cfg.rightPlaqueOrigin.y) + 30;
-    UIView *rightPlaque = [self buildPlaqueViewWithImage:singlePlaque
-                                                   text:cfg.rightPlaqueText
-                                                  frame:CGRectMake(rightX, rightY, cfg.plaqueSize.width, cfg.plaqueSize.height)
-                                                isRight:YES];
-    [self.plaquesLayer addSubview:rightPlaque];
+    self.rightPlaqueView = [self buildPlaqueViewWithImage:singlePlaque
+                                                    text:cfg.rightPlaqueText
+                                                   frame:CGRectMake(rightX, rightY, cfg.plaqueSize.width, cfg.plaqueSize.height)
+                                                 isRight:YES];
+    [self.plaquesLayer addSubview:self.rightPlaqueView];
 }
 
 - (UIView *)buildPlaqueViewWithImage:(UIImage *)plaqueImage text:(NSString *)text frame:(CGRect)frame isRight:(BOOL)isRight {
@@ -135,9 +136,9 @@
     plaqueBg.contentMode = UIViewContentModeScaleToFill;
     plaqueBg.image = plaqueImage;
     plaqueBg.layer.shadowColor = [UIColor blackColor].CGColor;
-    plaqueBg.layer.shadowOpacity = 0.58;
-    plaqueBg.layer.shadowRadius = 11.0;
-    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -4 : 4, 8);
+    plaqueBg.layer.shadowOpacity = 0.60;
+    plaqueBg.layer.shadowRadius = 12.0;
+    plaqueBg.layer.shadowOffset = CGSizeMake(isRight ? -5 : 5, 9);
     [container addSubview:plaqueBg];
 
     CGFloat topPadding = 32.0;
@@ -173,19 +174,29 @@
     self.headerInfoLayer = [[UIView alloc] initWithFrame:CGRectMake((screenW - headerW) / 2.0 + 30, startY + 30, headerW, headerH)];
     [self.sceneContainer addSubview:self.headerInfoLayer];
 
+    // Тончайшая полупрозрачная подложка под текстом (эффект матовой слюды) для идеальной читаемости
+    UIView *micaBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 105, headerW, 115)];
+    micaBackground.backgroundColor = [UIColor colorWithRed:0.98 green:0.95 blue:0.90 alpha:0.08];
+    micaBackground.layer.cornerRadius = 16.0;
+    micaBackground.layer.borderWidth = 0.5;
+    micaBackground.layer.borderColor = [UIColor colorWithRed:1.0 green:1.0 blue:1.0 alpha:0.12].CGColor;
+    micaBackground.clipsToBounds = YES;
+    [self.headerInfoLayer addSubview:micaBackground];
+
     UIImage *rawLogo = [self imageFromBase64:kStoreLogoBase64];
     if (!rawLogo) rawLogo = [UIImage imageNamed:@"store_logo.png"];
     UIImage *cleanLogo = [self removeBlackBackground:rawLogo];
 
     CGFloat logoW = 250.0;
     CGFloat logoH = 125.0;
-    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -12, logoW, logoH)];
+    self.metalLogoView = [[UIImageView alloc] initWithFrame:CGRectMake((headerW - logoW) / 2.0, -14, logoW, logoH)];
     self.metalLogoView.contentMode = UIViewContentModeScaleAspectFit;
     self.metalLogoView.image = cleanLogo;
+    // Глубокая рассеянная тень, вплавляющая значок в бумагу
     self.metalLogoView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.metalLogoView.layer.shadowOpacity = 0.65;
-    self.metalLogoView.layer.shadowRadius = 14.0;
-    self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 8);
+    self.metalLogoView.layer.shadowOpacity = 0.55;
+    self.metalLogoView.layer.shadowRadius = 18.0;
+    self.metalLogoView.layer.shadowOffset = CGSizeMake(0, 10);
     [self.headerInfoLayer addSubview:self.metalLogoView];
 
     // Заголовок (Serif)
@@ -206,7 +217,7 @@
     subLine1.textColor = [UIColor colorWithRed:0.22 green:0.13 blue:0.08 alpha:0.90];
     [self.headerInfoLayer addSubview:subLine1];
 
-    // Строка 2: GeraKStore (строго по центру, другой шрифт, чуть плотнее)
+    // Строка 2: GeraKStore
     UILabel *subLine2 = [[UILabel alloc] initWithFrame:CGRectMake(0, 178, headerW, 24)];
     subLine2.text = cfg.storeSubtitleText;
     subLine2.textAlignment = NSTextAlignmentCenter;
@@ -280,20 +291,25 @@
     }
 }
 
-// Логика «сердцебиения» (Pulse) логотипа из архива
-- (void)startLogoPulseAnimation {
-    CAKeyframeAnimation *scaleAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
-    scaleAnim.values = @[@1.0, @([WelcomeConfig sharedConfig].pulseScale), @1.0, @1.0];
-    scaleAnim.keyTimes = @[@0.0, @0.15, @0.30, @1.0];
-    scaleAnim.duration = 2.4;
-    scaleAnim.repeatCount = HUGE_VALF;
-    scaleAnim.removedOnCompletion = NO;
-    scaleAnim.fillMode = kCAFillModeForwards;
+// Архивный двухтактный пульс (сердцебиение: быстрый удар, короткий спад, пауза) + тактильный отклик
+- (void)startArchiveHeartbeatPulse {
+    CAKeyframeAnimation *pulseAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+    pulseAnim.values = @[@1.0, @1.08, @1.02, @1.06, @1.0];
+    pulseAnim.keyTimes = @[@0.0, @0.12, @0.22, @0.32, @1.0];
+    pulseAnim.duration = 1.2;
+    pulseAnim.repeatCount = HUGE_VALF;
+    pulseAnim.removedOnCompletion = NO;
+    pulseAnim.fillMode = kCAFillModeForwards;
     
-    CAMediaTimingFunction *easeInOut = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    scaleAnim.timingFunctions = @[easeInOut, easeInOut, easeInOut];
+    CAMediaTimingFunction *fn = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    pulseAnim.timingFunctions = @[fn, fn, fn, fn];
     
-    [self.metalLogoView.layer addAnimation:scaleAnim forKey:@"gerastore.ambient.stars"];
+    [self.metalLogoView.layer addAnimation:pulseAnim forKey:@"gerastore.ambient.stars"];
+    
+    // Синхронизированный тактильный удар под ритм сердцебиения
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self triggerHaptic];
+    });
 }
 
 - (void)addParallaxEffectToView:(UIView *)target depth:(CGFloat)depth {
@@ -312,7 +328,7 @@
 
 - (void)applyMultiDepthParallax {
     WelcomeConfig *cfg = [WelcomeConfig sharedConfig];
-    [self addParallaxEffectToView:self.backgroundImageView depth:6.0];
+    [self addParallaxEffectToView:self.backgroundImageView depth:4.0];
     [self addParallaxEffectToView:self.plaquesLayer depth:cfg.plaqueParallaxDepth];
     [self addParallaxEffectToView:self.headerInfoLayer depth:24.0];
     [self addParallaxEffectToView:self.metalLogoView depth:48.0];
